@@ -472,6 +472,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to share an activity on social platforms
+  function shareActivity(platform, name, details, buttonEl) {
+    const schedule = formatSchedule(details);
+    const text = `Check out "${name}" at Mergington High School! ${details.description} — ${schedule}`;
+    const url = window.location.href;
+
+    if (platform === "twitter") {
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+      window.open(twitterUrl, "_blank", "noopener,noreferrer");
+    } else if (platform === "whatsapp") {
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    } else if (platform === "copy") {
+      navigator.clipboard.writeText(text + " " + url).then(() => {
+        const original = buttonEl.textContent;
+        buttonEl.textContent = "✅";
+        setTimeout(() => {
+          buttonEl.textContent = original;
+        }, 2000);
+      }).catch(() => {
+        showMessage("Could not copy to clipboard.", "error");
+      });
+    }
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -569,6 +594,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-buttons">
+        <span class="share-label">Share:</span>
+        <button class="share-btn share-twitter" title="Share on X (Twitter)" data-activity="${name}">𝕏</button>
+        <button class="share-btn share-whatsapp" title="Share on WhatsApp" data-activity="${name}">💬</button>
+        <button class="share-btn share-copy" title="Copy link" data-activity="${name}">🔗</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +617,17 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for share buttons
+    activityCard.querySelector(".share-twitter").addEventListener("click", () => {
+      shareActivity("twitter", name, details);
+    });
+    activityCard.querySelector(".share-whatsapp").addEventListener("click", () => {
+      shareActivity("whatsapp", name, details);
+    });
+    activityCard.querySelector(".share-copy").addEventListener("click", (event) => {
+      shareActivity("copy", name, details, event.currentTarget);
+    });
 
     activitiesList.appendChild(activityCard);
   }
